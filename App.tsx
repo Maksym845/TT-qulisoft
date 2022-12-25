@@ -1,26 +1,50 @@
 import { StatusBar } from 'expo-status-bar';
-import {FlatList, StyleSheet, Text, View} from 'react-native';
-import styled from 'styled-components/native';
 
-import { News } from './src/News';
+import { fetchPhotosList } from './src/tools/fetchPhotosList';
+import { useEffect } from "react";
+import { Provider } from "react-redux";
+import { actions } from "./src/features/setPhotos";
+import { store } from "./src/store";
+import { Gallery } from "./src/screens/galery";
+import { useAppDispatch } from "./src/hooks";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { PhotoPage } from "./src/screens/photoPage";
+import { RootStackParamList } from "./src/types/RootStackParamList";
 
-const Container = styled.View`
-  margin-left: 10px;
-  margin-right: 10px;
-  margin-top: 25px;
-  margin-bottom: 0;
-`;
+function App() {
+  const dispatch = useAppDispatch();
+  const Stack = createNativeStackNavigator<RootStackParamList>();
 
-const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  useEffect(() => {
+      (async () => {
+         const photos = await fetchPhotosList();
+         await dispatch(actions.setPhotos(photos));
+      })();
+  }, [dispatch]);
 
-export default function App() {
   return (
-    <View>
-      <Container>
-        {/*<FlatList data={arr} renderItem={({item}) => (*/}
-        {/*)} />*/}
-      </Container>
-      <StatusBar style="auto" />
-    </View>
+      <NavigationContainer>
+          <Stack.Navigator initialRouteName="Home">
+              <Stack.Screen
+                name="Home"
+                component={Gallery}
+              />
+              <Stack.Screen
+                name="PhotoPage"
+                component={PhotoPage}
+              />
+          </Stack.Navigator>
+      </NavigationContainer>
   );
+}
+
+
+export default () => {
+    return (
+      <Provider store={store}>
+        <StatusBar style={"auto"}></StatusBar>
+        <App />
+      </Provider>
+    );
 }
